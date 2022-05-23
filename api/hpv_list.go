@@ -2,12 +2,16 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+
+	"hpv-vaccine-hunter/model"
 )
 
-const url = "https://miaomiao.scmttec.com/seckill/seckill/list.do?offset=0&limit=10&regionCode=5101"
+const (
+	seckillUrl = "https://miaomiao.scmttec.com/seckill/seckill/list.do?offset=0&limit=10&regionCode=5101"
+)
 
 type Client struct {
 	auth Auth // 认证
@@ -22,8 +26,7 @@ func NewClient(tk, cookie string) *Client {
 	}
 }
 
-// GetSecondKillList 获取秒杀列表
-func (c *Client) GetSecondKillList() {
+func (c *Client) get(url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		panic(err)
@@ -33,49 +36,61 @@ func (c *Client) GetSecondKillList() {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("tk", c.auth.TK)
 	req.Header.Set("Cookie", c.auth.Cookie)
+	req.Header.Set("X-Requested-With", "XMLHttpRequest")
+	req.Header.Set("Accept-Encoding", "gzip,compress,br,deflate")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.20(0x18001435) NetType/WIFI Language/zh_CN")
+	req.Header.Set("Referer", "https://servicewechat.com/wxff8cad2e9bf18719/27/page-frame.html")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	var data GetOrganizationResponse
+	var data CommonResponse
 	if err := json.Unmarshal(bytes, &data); err != nil {
-		panic(err)
+		return nil, err
 	}
-	fmt.Println(data)
+
+	log.Printf("get http response: %v\n", data)
+
+	// 错误处理
+	if !data.Ok {
+		log.Printf("[error] get http resonse: %v\n", data)
+		return nil, nil
+	}
+
+	result, err := json.Marshal(data.Data)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
-type GetOrganizationResponse struct {
-	List   []Organization `json:"list"`
-	Status int            `json:"status"` // 200 ok
-	Msg    string         `json:"msg"`    // "102"
+// GetSecondKillList 获取秒杀列表
+func (c *Client) GetSecondKillList() ([]model.VaccineItem, error) {
+	data, err := c.get(seckillUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	var vaccines []model.VaccineItem
+	if err := json.Unmarshal(data, &vaccines); err != nil {
+		return nil, err
+	}
+
+	return vaccines, nil
 }
 
-type Organization struct {
-	Id           int           `json:"id"`
-	Cname        string        `json:"cname"`
-	Addr         string        `json:"addr"`
-	SmallPic     string        `json:"SmallPic"`
-	BigPic       interface{}   `json:"BigPic"`
-	Lat          float64       `json:"lat"`
-	Lng          float64       `json:"lng"`
-	Tel          string        `json:"tel"`
-	Addr2        string        `json:"addr2"`
-	Province     int           `json:"province"`
-	City         int           `json:"city"`
-	County       int           `json:"county"`
-	Sort         int           `json:"sort"`
-	DistanceShow int           `json:"DistanceShow"`
-	PayMent      string        `json:"PayMent"`
-	IdcardLimit  bool          `json:"IdcardLimit"`
-	Notice       string        `json:"notice"`
-	Distance     float64       `json:"distance"`
-	Tags         []interface{} `json:"tags"`
+type CommonResponse struct {
+	Data   interface{} `json:"data"`
+	Status string      `json:"code"` // 0000 ok
+	Ok     bool        `json:"ok"`
+	NotOk  bool        `json:"notOk"`
+	Msg    string      `json:"msg"` // 错误信息
 }
