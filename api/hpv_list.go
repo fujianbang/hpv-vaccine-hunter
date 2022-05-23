@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	seckillUrl = "https://miaomiao.scmttec.com/seckill/seckill/list.do?offset=0&limit=10&regionCode=5101"
+	seckillUrl   = "/seckill/seckill/list.do?offset=0&limit=10&regionCode=5101"
+	getMemberUrl = "/seckill/linkman/findByUserId.do"
 )
 
 type Client struct {
@@ -26,7 +27,9 @@ func NewClient(tk, cookie string) *Client {
 	}
 }
 
-func (c *Client) get(url string) ([]byte, error) {
+func (c *Client) get(path string) ([]byte, error) {
+	url := "https://miaomiao.scmttec.com" + path
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		panic(err)
@@ -85,6 +88,20 @@ func (c *Client) GetSecondKillList() ([]model.VaccineItem, error) {
 	}
 
 	return vaccines, nil
+}
+
+func (c *Client) GetMemberList() ([]model.Member, error) {
+	data, err := c.get(getMemberUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	var members []model.Member
+	if err := json.Unmarshal(data, &members); err != nil {
+		return nil, err
+	}
+
+	return members, nil
 }
 
 type CommonResponse struct {

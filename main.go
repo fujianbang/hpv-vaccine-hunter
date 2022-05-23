@@ -30,7 +30,7 @@ func readConfig() (string, string) {
 func main() {
 	client := api.NewClient(readConfig())
 
-	aa, err := client.GetSecondKillList()
+	aa, err := client.GetMemberList()
 	if err != nil {
 		log.Fatalln(err)
 	}
