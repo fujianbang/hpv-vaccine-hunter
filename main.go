@@ -45,7 +45,7 @@ func main() {
 }
 
 func Run(f func()) {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(100 * time.Millisecond) // 100毫秒间隔抢票
 
 	for {
 		t := <-ticker.C
