@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 const (
 	seckillUrl   = "/seckill/seckill/list.do?offset=0&limit=10&regionCode=5101"
 	getMemberUrl = "/seckill/linkman/findByUserId.do"
+	loginUrl     = "/passport/wxapp/login.do?code=063tse000nKjTN1fUE100veT7C4tse0j&minaId=1"
 )
 
 type Client struct {
@@ -75,6 +77,20 @@ func (c *Client) get(path string) ([]byte, error) {
 	return result, nil
 }
 
+// login 登录更新tk和cookie（暂弃用）
+//
+// 当接口code返回 "1001"，msg错误提示"用户登录超时,请重新登入!"，此时需要调用该函数更新tk和cookie
+// 需要从response的header获取Set-Cookie的 tgw_l7-route值并更新cookie的该段
+func (c *Client) login() error {
+	data, err := c.get(loginUrl)
+	if err != nil {
+		return err
+	}
+	log.Println(data)
+
+	return nil
+}
+
 // GetSecondKillList 获取秒杀列表
 func (c *Client) GetSecondKillList() ([]model.VaccineItem, error) {
 	data, err := c.get(seckillUrl)
@@ -88,6 +104,22 @@ func (c *Client) GetSecondKillList() ([]model.VaccineItem, error) {
 	}
 
 	return vaccines, nil
+}
+
+// CheckStock 检查秒杀状态并检查服务器时间
+func (c *Client) CheckStock(id int) (*model.CheckStockResult, error) {
+	url := fmt.Sprintf("/seckill/seckill/checkstock2.do?id=%d", id)
+	data, err := c.get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	var result model.CheckStockResult
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 func (c *Client) GetMemberList() ([]model.Member, error) {

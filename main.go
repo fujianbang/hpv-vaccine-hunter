@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/spf13/viper"
 	"hpv-vaccine-hunter/api"
@@ -30,9 +30,24 @@ func readConfig() (string, string) {
 func main() {
 	client := api.NewClient(readConfig())
 
-	aa, err := client.GetMemberList()
+	// aa, err := client.GetSecondKillList()
+	// aa, err := client.GetMemberList()
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+	// log.Println(aa)
+
+	CheckStock(client)
+}
+
+func CheckStock(c *api.Client) {
+	data, err := c.CheckStock(2151)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(aa)
+	log.Println(data)
+
+	// 核对服务器时间
+	t := time.UnixMilli(data.ServerTimestamp)
+	log.Println("时间差：", t.Sub(time.Now()))
 }
