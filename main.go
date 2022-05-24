@@ -36,12 +36,12 @@ func main() {
 	// CheckStock(client)
 	// Subscribe(client)
 
-	Run(func() {
-		// MemberList(client)
+	// Run(func() {
+	// MemberList(client)
 
-		// 抢票
-		Subscribe(client)
-	})
+	// 抢票
+	Subscribe(client)
+	// })
 }
 
 func Run(f func()) {
@@ -57,8 +57,6 @@ func Run(f func()) {
 
 func Subscribe(c *api.Client) {
 	target, memberId, idCard := viper.GetInt("target"), viper.GetString("member_id"), viper.GetString("id_card")
-
-	log.Printf("秒杀ID: %d, 接种者ID: %s, 身份证: %s\n", target, memberId, idCard)
 
 	result, err := c.Subscribe(target, memberId, idCard)
 	if err != nil {

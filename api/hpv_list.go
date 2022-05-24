@@ -6,9 +6,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/spf13/viper"
 	"hpv-vaccine-hunter/model"
+	"hpv-vaccine-hunter/tools"
 )
 
 const (
@@ -33,7 +36,7 @@ func NewClient() *Client {
 	}
 }
 
-func (c *Client) get(path string) ([]byte, error) {
+func (c *Client) get(path string, params map[string]string) ([]byte, error) {
 	url := "https://miaomiao.scmttec.com" + path
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -49,6 +52,15 @@ func (c *Client) get(path string) ([]byte, error) {
 	req.Header.Set("Accept-Encoding", "gzip,compress,br,deflate")
 	req.Header.Set("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 15_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.20(0x18001435) NetType/WIFI Language/zh_CN")
 	req.Header.Set("Referer", "https://servicewechat.com/wxff8cad2e9bf18719/27/page-frame.html")
+
+	// 构造参数
+	if params != nil {
+		q := req.URL.Query()
+		for k, v := range params {
+			q.Add(k, v)
+		}
+		req.URL.RawQuery = q.Encode()
+	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -86,7 +98,7 @@ func (c *Client) get(path string) ([]byte, error) {
 // 当接口code返回 "1001"，msg错误提示"用户登录超时,请重新登入!"，此时需要调用该函数更新tk和cookie
 // 需要从response的header获取Set-Cookie的 tgw_l7-route值并更新cookie的该段
 func (c *Client) login() error {
-	data, err := c.get(loginUrl)
+	data, err := c.get(loginUrl, nil)
 	if err != nil {
 		return err
 	}
@@ -97,7 +109,7 @@ func (c *Client) login() error {
 
 // GetSecondKillList 获取秒杀列表
 func (c *Client) GetSecondKillList() ([]model.VaccineItem, error) {
-	data, err := c.get(seckillUrl)
+	data, err := c.get(seckillUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +125,7 @@ func (c *Client) GetSecondKillList() ([]model.VaccineItem, error) {
 // CheckStock 检查秒杀状态并检查服务器时间
 func (c *Client) CheckStock(id int) (*model.CheckStockResult, error) {
 	url := fmt.Sprintf("/seckill/seckill/checkstock2.do?id=%d", id)
-	data, err := c.get(url)
+	data, err := c.get(url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -128,8 +140,21 @@ func (c *Client) CheckStock(id int) (*model.CheckStockResult, error) {
 
 // Subscribe 抢疫苗
 func (c *Client) Subscribe(seckillId int, linkmanId string, idCard string) (*model.SubscribeResult, error) {
+	log.Printf("秒杀ID: %d, 接种者ID: %s, 身份证: %s\n", seckillId, linkmanId, idCard)
+
+	st := time.Now().UnixMilli()
+	secret := tools.Md5Hex(fmt.Sprintf("%d%s%d", seckillId, linkmanId, st))
+	log.Printf("加密参数结果：%s (st:%d)", secret, st)
+
+	query := map[string]string{
+		"seckillId":    strconv.Itoa(seckillId),
+		"vaccineIndex": "1",
+		"linkmanId":    linkmanId,
+		"idCardNo":     idCard,
+	}
+
 	url := "/seckill/seckill/subscribe.do"
-	data, err := c.get(url)
+	data, err := c.get(url, query)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +167,7 @@ func (c *Client) Subscribe(seckillId int, linkmanId string, idCard string) (*mod
 }
 
 func (c *Client) GetMemberList() ([]model.Member, error) {
-	data, err := c.get(getMemberUrl)
+	data, err := c.get(getMemberUrl, nil)
 	if err != nil {
 		return nil, err
 	}
