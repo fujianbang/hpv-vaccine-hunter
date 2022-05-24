@@ -36,12 +36,10 @@ func main() {
 	// CheckStock(client)
 	// Subscribe(client)
 
-	// Run(func() {
-	// MemberList(client)
-
-	// 抢票
-	Subscribe(client)
-	// })
+	Run(func() {
+		// 抢票
+		Subscribe(client)
+	})
 }
 
 func Run(f func()) {
