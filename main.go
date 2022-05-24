@@ -34,11 +34,33 @@ func main() {
 	// SecondKillList(client)
 	// MemberList(client)
 	// CheckStock(client)
-	Subscribe(client)
+	// Subscribe(client)
+
+	Run(func() {
+		// MemberList(client)
+
+		// 抢票
+		Subscribe(client)
+	})
+}
+
+func Run(f func()) {
+	ticker := time.NewTicker(1 * time.Second)
+
+	for {
+		t := <-ticker.C
+		log.Println(t)
+
+		go f()
+	}
 }
 
 func Subscribe(c *api.Client) {
-	result, err := c.Subscribe(2151, viper.GetString("member_id"), viper.GetString("id_card"))
+	target, memberId, idCard := viper.GetInt("target"), viper.GetString("member_id"), viper.GetString("id_card")
+
+	log.Printf("秒杀ID: %d, 接种者ID: %s, 身份证: %s\n", target, memberId, idCard)
+
+	result, err := c.Subscribe(target, memberId, idCard)
 	if err != nil {
 		log.Fatalln(err)
 	}
