@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/spf13/viper"
 	"hpv-vaccine-hunter/model"
 )
 
@@ -20,7 +21,10 @@ type Client struct {
 	auth Auth // 认证
 }
 
-func NewClient(tk, cookie string) *Client {
+func NewClient() *Client {
+	tk, cookie := viper.GetString("tk"), viper.GetString("cookie")
+	log.Printf("tk: %s, cookie: %s\n", tk, cookie)
+
 	return &Client{
 		auth: Auth{
 			TK:     tk,
@@ -120,6 +124,21 @@ func (c *Client) CheckStock(id int) (*model.CheckStockResult, error) {
 	}
 
 	return &result, nil
+}
+
+// Subscribe 抢疫苗
+func (c *Client) Subscribe(seckillId int, linkmanId string, idCard string) (*model.SubscribeResult, error) {
+	url := "/seckill/seckill/subscribe.do"
+	data, err := c.get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	var result model.SubscribeResult
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
 
 func (c *Client) GetMemberList() ([]model.Member, error) {

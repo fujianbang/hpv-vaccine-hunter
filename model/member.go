@@ -1,5 +1,7 @@
 package model
 
+import "fmt"
+
 type Member struct {
 	Id           int    `json:"id"`           // 唯一ID
 	UserId       int    `json:"userId"`       // 用户ID
@@ -15,4 +17,8 @@ type Member struct {
 	ModifyTime   string `json:"modifyTime"`   // 修改时间
 	Yn           int    `json:"yn"`           // Unknown
 	IdCardType   int    `json:"idCardType"`   // 身份证类型 1:身份证
+}
+
+func (m Member) String() string {
+	return fmt.Sprintf("接种者 id:%d name:%s", m.Id, m.Name)
 }

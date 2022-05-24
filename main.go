@@ -9,7 +9,8 @@ import (
 	"hpv-vaccine-hunter/api"
 )
 
-func readConfig() (string, string) {
+// loadConfig 读取配置文件
+func loadConfig() {
 	path, err := os.Getwd()
 	if err != nil {
 		panic(err)
@@ -21,23 +22,53 @@ func readConfig() (string, string) {
 	if err := viper.ReadInConfig(); err != nil {
 		panic(err)
 	}
-
-	tk, cookie := viper.GetString("tk"), viper.GetString("cookie")
-	log.Printf("tk: %s, cookie: %s\n", tk, cookie)
-	return tk, cookie
 }
 
 func main() {
-	client := api.NewClient(readConfig())
+	loadConfig()
 
-	// aa, err := client.GetSecondKillList()
-	// aa, err := client.GetMemberList()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// log.Println(aa)
+	ShowMemberInfo()
 
-	CheckStock(client)
+	client := api.NewClient()
+
+	// SecondKillList(client)
+	// MemberList(client)
+	// CheckStock(client)
+	Subscribe(client)
+}
+
+func Subscribe(c *api.Client) {
+	result, err := c.Subscribe(2151, viper.GetString("member_id"), viper.GetString("id_card"))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Println(result)
+}
+
+// ShowMemberInfo 从viper配置环境中读取待接种者信息
+func ShowMemberInfo() {
+	id := viper.GetString("member_id")
+	id_card := viper.GetString("id_card")
+
+	log.Printf("待接种者ID：%s，姓名：%s", id, id_card)
+}
+
+func SecondKillList(c *api.Client) {
+	data, err := c.GetSecondKillList()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Println(data)
+}
+
+func MemberList(c *api.Client) {
+	memberList, err := c.GetMemberList()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	for _, member := range memberList {
+		log.Println(member)
+	}
 }
 
 func CheckStock(c *api.Client) {
