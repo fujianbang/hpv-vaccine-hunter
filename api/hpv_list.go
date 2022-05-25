@@ -113,7 +113,7 @@ func (c *Client) GetSecondKillList() ([]model.VaccineItem, error) {
 	return vaccines, nil
 }
 
-// CheckStock 检查秒杀状态并检查服务器时间
+// CheckStock 检查指定秒杀剩余疫苗数
 func (c *Client) CheckStock(id int) (*model.CheckStockResult, error) {
 	url := fmt.Sprintf("/seckill/seckill/checkstock2.do?id=%d", id)
 	data, err := c.get(url, nil, nil)
