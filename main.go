@@ -37,7 +37,7 @@ func main() {
 	// Subscribe(client)
 
 	Run(func() {
-		// 抢票
+		// 抢疫苗
 		Subscribe(client)
 	})
 }
@@ -58,7 +58,7 @@ func Subscribe(c *api.Client) {
 
 	result, err := c.Subscribe(target, memberId, idCard)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 	log.Println(result)
 }
@@ -90,7 +90,7 @@ func MemberList(c *api.Client) {
 }
 
 func CheckStock(c *api.Client) {
-	data, err := c.CheckStock(2151)
+	data, err := c.CheckStock(2170)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -88,7 +89,7 @@ func (c *Client) get(path string, params map[string]string, header map[string]st
 	// 错误处理
 	if !data.Ok {
 		log.Printf("[error] get http resonse: %v\n", data)
-		return nil, nil
+		return nil, errors.New(data.Msg)
 	}
 
 	result, err := json.Marshal(data.Data)
@@ -130,7 +131,7 @@ func (c *Client) CheckStock(id int) (*model.CheckStockResult, error) {
 }
 
 // Subscribe 抢疫苗
-func (c *Client) Subscribe(seckillId int, linkmanId string, idCard string) (*model.SubscribeResult, error) {
+func (c *Client) Subscribe(seckillId int, linkmanId string, idCard string) (string, error) {
 	log.Printf("秒杀ID: %d, 接种者ID: %s, 身份证: %s\n", seckillId, linkmanId, idCard)
 
 	query := map[string]string{
@@ -149,14 +150,14 @@ func (c *Client) Subscribe(seckillId int, linkmanId string, idCard string) (*mod
 
 	data, err := c.get("/seckill/seckill/subscribe.do", query, header)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	var result model.SubscribeResult
+	var result string
 	if err := json.Unmarshal(data, &result); err != nil {
-		return nil, err
+		return "", err
 	}
-	return nil, nil
+	return "", nil
 }
 
 func (c *Client) GetMemberList() ([]model.Member, error) {
