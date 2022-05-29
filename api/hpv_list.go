@@ -84,7 +84,7 @@ func (c *Client) get(path string, params map[string]string, header map[string]st
 		return nil, err
 	}
 
-	log.Printf("get http response: %v\n", data)
+	// log.Printf("get http response: %v\n", data)
 
 	// 错误处理
 	if !data.Ok {
@@ -143,7 +143,7 @@ func (c *Client) Subscribe(seckillId int, linkmanId string, idCard string) (stri
 
 	st := time.Now().UnixMilli()
 	secret := tools.Md5Hex(fmt.Sprintf("%d%s%d", seckillId, linkmanId, st))
-	log.Printf("加密参数结果：%s (st:%d)", secret, st)
+	// log.Printf("加密参数结果：%s (st:%d)", secret, st)
 	header := map[string]string{
 		"ecc-hs": secret,
 	}

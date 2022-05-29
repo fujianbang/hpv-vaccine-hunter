@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -31,15 +35,56 @@ func main() {
 
 	client := api.NewClient()
 
-	// SecondKillList(client)
-	// MemberList(client)
-	// CheckStock(client)
-	// Subscribe(client)
+	// 待抢疫苗信息
+	vaccineList, err := client.GetSecondKillList()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	Run(func() {
+	for i, item := range vaccineList {
+		fmt.Printf("[%d] %d: %s，开始时间: %s, 地址: %s\n",
+			i+1,
+			item.Id, item.Name, item.StartTime, item.Address)
+	}
+
+	inputReader := bufio.NewReader(os.Stdin)
+	fmt.Printf("请输入待抢的疫苗编号：")
+	input, err := inputReader.ReadString('\n')
+	if err != nil {
+		panic(err)
+	}
+
+	targetId, err := strconv.Atoi(strings.TrimSpace(input))
+	if err != nil {
+		log.Printf("疫苗ID不合法 [%s]\n", err)
+	}
+
+	if targetId <= 0 || targetId > len(vaccineList) {
+		log.Printf("疫苗ID不合法 [%d]\n", targetId)
+	}
+
+	target := vaccineList[targetId-1]
+	fmt.Printf("目标疫苗信息(%d-%s-%s)\n", target.Id, target.Name, target.StartTime)
+
+	target.StartTime = "2022-05-29 23:02:00"
+	targetTime, err := time.ParseInLocation("2006-01-02 15:04:05", target.StartTime, time.Local)
+	if err != nil {
+		log.Fatalf("时间解析失败 [%s]", err.Error())
+	}
+	remaining := targetTime.Sub(time.Now())
+	fmt.Printf("目标时间: %v，倒计时：%v\n", targetTime, remaining)
+
+	timer := time.NewTimer(remaining)
+	select {
+	case <-timer.C:
+		fmt.Println("-----------------------------------------------------------")
+		fmt.Printf("任务开始，执行抢票: %s\n", time.Now())
+
+		// Run(func() {
 		// 抢疫苗
 		Subscribe(client)
-	})
+		// })
+	}
 }
 
 func Run(f func()) {
@@ -68,15 +113,7 @@ func ShowMemberInfo() {
 	id := viper.GetString("member_id")
 	id_card := viper.GetString("id_card")
 
-	log.Printf("待接种者ID：%s，姓名：%s", id, id_card)
-}
-
-func SecondKillList(c *api.Client) {
-	data, err := c.GetSecondKillList()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Println(data)
+	log.Printf("待接种者ID：%s，身份证：%s", id, id_card)
 }
 
 func MemberList(c *api.Client) {
