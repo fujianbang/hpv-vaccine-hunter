@@ -3,3 +3,6 @@ cookie: tgw_l7_route=6e0a47ce8062c68ea282b9bbb140678e; _xxhm_=%7B%22id%22%3A2310
 
 member_id: 27915615
 id_card: 513826199704292429
+
+# 提前开始（毫秒）
+early_start: 50

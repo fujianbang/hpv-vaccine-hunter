@@ -66,11 +66,14 @@ func main() {
 	target := vaccineList[targetId-1]
 	fmt.Printf("目标疫苗信息(%d-%s-%s)\n", target.Id, target.Name, target.StartTime)
 
-	target.StartTime = "2022-05-29 23:09:00"
 	targetTime, err := time.ParseInLocation("2006-01-02 15:04:05", target.StartTime, time.Local)
 	if err != nil {
 		log.Fatalf("时间解析失败 [%s]", err.Error())
 	}
+	// 获取提前时间
+	earlyStartMs := viper.GetInt("early_start")
+	// 时间调整对齐
+	targetTime = targetTime.Add(-time.Duration(earlyStartMs) * time.Millisecond)
 	remaining := targetTime.Sub(time.Now())
 	fmt.Printf("目标时间: %v，倒计时：%v\n", targetTime, remaining)
 
