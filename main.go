@@ -66,7 +66,7 @@ func main() {
 	target := vaccineList[targetId-1]
 	fmt.Printf("目标疫苗信息(%d-%s-%s)\n", target.Id, target.Name, target.StartTime)
 
-	target.StartTime = "2022-05-29 23:02:00"
+	target.StartTime = "2022-05-29 23:09:00"
 	targetTime, err := time.ParseInLocation("2006-01-02 15:04:05", target.StartTime, time.Local)
 	if err != nil {
 		log.Fatalf("时间解析失败 [%s]", err.Error())
@@ -74,27 +74,39 @@ func main() {
 	remaining := targetTime.Sub(time.Now())
 	fmt.Printf("目标时间: %v，倒计时：%v\n", targetTime, remaining)
 
+	if remaining.Nanoseconds() < 0 {
+		log.Fatalln("抢票已过期")
+	}
+
 	timer := time.NewTimer(remaining)
 	select {
 	case <-timer.C:
 		fmt.Println("-----------------------------------------------------------")
 		fmt.Printf("任务开始，执行抢票: %s\n", time.Now())
 
-		// Run(func() {
-		// 抢疫苗
-		Subscribe(client)
-		// })
+		Run(10, func() {
+			// 抢疫苗
+			Subscribe(client)
+		})
 	}
+	time.Sleep(10 * time.Second)
 }
 
-func Run(f func()) {
+func Run(times int, f func()) {
 	ticker := time.NewTicker(100 * time.Millisecond) // 100毫秒间隔抢票
 
+	var counter = 0
 	for {
 		t := <-ticker.C
 		log.Println(t)
 
 		go f()
+
+		counter++
+
+		if counter >= times {
+			break
+		}
 	}
 }
 
