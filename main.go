@@ -89,14 +89,14 @@ func main() {
 
 		Run(10, func() {
 			// 抢疫苗
-			Subscribe(client)
+			Subscribe(client, target.Id)
 		})
 	}
 	time.Sleep(10 * time.Second)
 }
 
 func Run(times int, f func()) {
-	ticker := time.NewTicker(100 * time.Millisecond) // 100毫秒间隔抢票
+	ticker := time.NewTicker(30 * time.Millisecond) // 间隔时间抢票
 
 	var counter = 0
 	for {
@@ -113,10 +113,10 @@ func Run(times int, f func()) {
 	}
 }
 
-func Subscribe(c *api.Client) {
-	target, memberId, idCard := viper.GetInt("target"), viper.GetString("member_id"), viper.GetString("id_card")
+func Subscribe(c *api.Client, vaccineId int) {
+	memberId, idCard := viper.GetString("member_id"), viper.GetString("id_card")
 
-	result, err := c.Subscribe(target, memberId, idCard)
+	result, err := c.Subscribe(vaccineId, memberId, idCard)
 	if err != nil {
 		log.Println(err)
 	}
