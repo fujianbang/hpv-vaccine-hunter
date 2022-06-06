@@ -44,7 +44,7 @@ func main() {
 	for i, item := range vaccineList {
 		fmt.Printf("[%d] %d: %s，开始时间: %s, 地址: %s\n",
 			i+1,
-			item.Id, item.Name, item.StartTime, item.Address)
+			item.Id, item.VaccineName, item.StartTime, item.Address)
 	}
 
 	inputReader := bufio.NewReader(os.Stdin)
@@ -64,7 +64,7 @@ func main() {
 	}
 
 	target := vaccineList[targetId-1]
-	fmt.Printf("目标疫苗信息(%d-%s-%s)\n", target.Id, target.Name, target.StartTime)
+	fmt.Printf("目标疫苗信息(%d-%s-%s)\n", target.Id, target.VaccineName, target.StartTime)
 
 	targetTime, err := time.ParseInLocation("2006-01-02 15:04:05", target.StartTime, time.Local)
 	if err != nil {
