@@ -84,11 +84,12 @@ func (c *Client) get(path string, params map[string]string, header map[string]st
 		return nil, err
 	}
 
-	// log.Printf("get http response: %v\n", data)
+	log.Printf("get http response: %v\n", data)
 
 	// 错误处理
 	if !data.Ok {
 		log.Printf("[error] get http resonse: %v\n", data)
+		log.Printf("[error] get http resonse detail: %s\n", string(bytes))
 		return nil, errors.New(data.Msg)
 	}
 

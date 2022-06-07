@@ -44,7 +44,7 @@ func main() {
 	for i, item := range vaccineList {
 		fmt.Printf("[%d] %d: %s，开始时间: %s, 地址: %s\n",
 			i+1,
-			item.Id, item.VaccineName, item.StartTime, item.Address)
+			item.Id, item.VaccineName, item.StartTime, item.Name)
 	}
 
 	inputReader := bufio.NewReader(os.Stdin)
